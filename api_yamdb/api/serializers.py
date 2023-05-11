@@ -11,27 +11,29 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class SignupSerializer(serializers.ModelSerializer):
-    """Docstring."""
+    class Meta:
+        model = User
+        fields = ('email', 'username')
 
-    username = serializers.CharField(required=True, max_length=150)
-    email = serializers.EmailField(max_length=254)
+    def to_internal_value(self, data):
+        email = data.get('email')
+        username = data.get('username')
+        if email and username:
+            try:
+                user = User.objects.get(email=email, username=username)
+                return user
+            except User.DoesNotExist:
+                pass
+        return super().to_internal_value(data)
 
-    # def create(self, validated_data):
-    #     try:
-    #         user = User.objects.get_or_create(
-    #             username=validated_data['username'],
-    #             email=validated_data['email'],
-    #         )
-    #     except KeyError as err:
-    #         raise serializers.ValidationError(f'Отсутствует ключ{err}')
-    #     return user
+
+class TokenSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(required=True)
+    confirmation_code = serializers.CharField(required=True)
 
     class Meta:
         model = User
-        fields = ('username', 'email')
-
-    # def create(self, validated_data):
-    # return super().create(validated_data)
+        fields = ('username', 'confirmation_code')
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -43,13 +45,6 @@ class UserSerializer(serializers.ModelSerializer):
             'id',
             'username',
             'email',
-            'first_name',
-            'last_name',
-            'bio',
-            'role',
-        )
-        read_only_fields = (
-            'id',
             'first_name',
             'last_name',
             'bio',

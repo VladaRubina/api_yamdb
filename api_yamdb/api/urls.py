@@ -5,7 +5,7 @@ from .views import SignUpView, UsersViewSet
 
 router = DefaultRouter()
 
-router.register('users', UsersViewSet, basename='users')
+router.register(r'users', UsersViewSet, basename='users')
 
 urlpatterns = [
     path('v1/', include(router.urls)),
