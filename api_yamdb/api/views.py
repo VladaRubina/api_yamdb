@@ -5,8 +5,7 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
 from rest_framework.generics import CreateAPIView
-from rest_framework.mixins import ListCreateDestroyViewSet
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
@@ -14,6 +13,7 @@ from reviews.models import Category, User
 
 from api_yamdb.settings import ADMIN_EMAIL
 
+from .permissions import IsAdmin
 from .serializers import (
     CategorySerializer,
     SignupSerializer,
@@ -21,10 +21,7 @@ from .serializers import (
     UserSerializer,
 )
 
-# from rest_framework_simplejwt.tokens import AccessToken
 
-
-# Create your views here.
 class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
@@ -74,8 +71,9 @@ class UsersViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = [SearchFilter]
+    http_method_names = ['get', 'post', 'patch', 'delete']
     search_fields = ('username',)
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdmin]
     lookup_field = 'username'
 
     @action(

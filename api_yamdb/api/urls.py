@@ -1,7 +1,7 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from .views import SignUpView, UsersViewSet
+from .views import GetTokenView, SignUpView, UsersViewSet
 
 router = DefaultRouter()
 
@@ -14,5 +14,5 @@ urlpatterns = [
         SignUpView.as_view(),
         name='signup',
     ),
-    # path('v1/auth/token/', GetTokenView.as_view(), name='token_verify'),
+    path('v1/auth/token/', GetTokenView.as_view(), name='token_verify'),
 ]
