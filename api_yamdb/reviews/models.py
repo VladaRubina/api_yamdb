@@ -2,6 +2,7 @@ from api.validators import validate_username
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 
 username_validator = UnicodeUsernameValidator()
 
@@ -79,3 +80,56 @@ class Category(models.Model):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
         ordering = ['name']
+
+
+class Title(models.Model):
+    pass
+
+
+class Review(models.Model):
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True
+    )
+    text = models.TextField()
+    score = models.IntegerField(
+        'Оценка',
+        default=0,
+        validators=[MinValueValidator(1),
+                    MaxValueValidator(10)],
+    )
+
+    class Meta:
+        ordering = ['-pub_date']
+        verbose_name = 'Ревью'
+
+
+class Comment(models.Model):
+    review = models.ForeignKey(
+        Review,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    text = models.TextField()
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return self.author
