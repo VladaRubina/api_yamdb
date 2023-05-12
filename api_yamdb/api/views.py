@@ -1,10 +1,9 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.generics import CreateAPIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
@@ -21,16 +20,15 @@ from .serializers import (
     UserSerializer,
 )
 
+# class CategoryViewSet(generics.ListCreateDestroyAPIView):
+#     queryset = Category.objects.all()
+#     serializer_class = CategorySerializer
+#     filter_backends = (SearchFilter,)
+#     search_fields = ("name",)
+#     lookup_field = "slug"
 
-class CategoryViewSet(ListCreateDestroyViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    filter_backends = (SearchFilter,)
-    search_fields = ("name",)
-    lookup_field = "slug"
 
-
-class SignUpView(CreateAPIView):
+class SignUpView(generics.CreateAPIView):
     serializer_class = SignupSerializer
     permission_classes = (AllowAny,)
 
@@ -46,7 +44,7 @@ class SignUpView(CreateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class GetTokenView(CreateAPIView):
+class GetTokenView(generics.CreateAPIView):
     serializer_class = TokenSerializer
     permission_classes = (AllowAny,)
 
@@ -89,5 +87,11 @@ class UsersViewSet(ModelViewSet):
         if request.method == 'PATCH':
             serializer = UserSerializer(user, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            serializer.save(role=self.request.user.role)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'])
+    def get_users(self, request):
+        users = User.objects.all()
+        serialaizer = UserSerializer(users)
+        return Response(serialaizer.data, status=status.HTTP_200_OK)
