@@ -2,25 +2,33 @@ from rest_framework import permissions
 
 
 class IsAdmin(permissions.BasePermission):
-    """Docstring."""
+    def has_permission(self, request, view):
+        return request.user.is_admin or request.user.is_staff
 
     def has_object_permission(self, request, view, obj):
-        return self.request.user.is_admin
+        return request.user.is_admin or request.user.is_staff
 
 
-class IsModerator(permissions.BasePermission):
-    """Docstring."""
-
+class IsUser(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
-        return self.request.user.is_moderator
+        return request.user.is_user
 
 
-class IsAuthorOrReadOnly(permissions.BasePermission):
-    """Доступ на изменение только авторам."""
-
-    message = 'Изменения может вносить только автор!'
+class IsAdminOrReadOnly(permissions.BasePermission):
+    """Docstring."""
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        return obj.author == request.user
+        return self.request.user.is_admin or self.request.user.is_staff
+
+
+class IsAuthorModeratorOrReadOnly(permissions.BasePermission):
+    """Доступ на изменение только авторам."""
+
+    message = 'Изменения доступны только авторам или модераторам!'
+
+    def has_object_permission(self, request, view, obj):
+        if request.method in permissions.SAFE_METHODS:
+            return True
+        return obj.author == request.user or request.user.is_moderator

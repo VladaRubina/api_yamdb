@@ -24,24 +24,35 @@ class User(AbstractUser):
         validators=(username_validator, validate_username),
     )
     email = models.EmailField(
-        'почта', max_length=254, unique=True, blank=False
+        'почта',
+        unique=True,
+        blank=False,
     )
-    first_name = models.CharField('Имя', max_length=150, blank=False)
-    last_name = models.CharField('Фамилия', max_length=150, blank=False)
-    bio = models.TextField('О себе', blank=False)
+    first_name = models.CharField(
+        'Имя',
+        max_length=150,
+        null=True,
+        blank=True,
+    )
+    last_name = models.CharField(
+        'Фамилия',
+        max_length=150,
+        null=True,
+        blank=True,
+    )
+    bio = models.TextField('О себе', blank=True)
     role = models.CharField(
         'Группа пользователей',
         max_length=255,
         choices=CHOICES,
         default=USER,
-        blank=False,
-        null=False,
+        blank=True,
     )
     confirmation_code = models.CharField(
         'код подтверждения',
         max_length=255,
         null=True,
-        blank=False,
+        blank=True,
         default='***',
     )
 
@@ -79,3 +90,10 @@ class Category(models.Model):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
         ordering = ['name']
+
+
+class AnonymousUser:
+    def __init__(self):
+        @property
+        def is_admin(self):
+            return False

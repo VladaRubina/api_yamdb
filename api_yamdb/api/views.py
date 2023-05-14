@@ -1,12 +1,10 @@
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.shortcuts import get_object_or_404
-from rest_framework import status
+from rest_framework import generics, status
 from rest_framework.decorators import action
 from rest_framework.filters import SearchFilter
-from rest_framework.generics import CreateAPIView
-from rest_framework.mixins import ListCreateDestroyViewSet
-from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
@@ -14,6 +12,7 @@ from reviews.models import Category, User
 
 from api_yamdb.settings import ADMIN_EMAIL
 
+from .permissions import IsAdmin
 from .serializers import (
     CategorySerializer,
     SignupSerializer,
@@ -21,19 +20,15 @@ from .serializers import (
     UserSerializer,
 )
 
-# from rest_framework_simplejwt.tokens import AccessToken
+# class CategoryViewSet(generics.ListCreateDestroyAPIView):
+#     queryset = Category.objects.all()
+#     serializer_class = CategorySerializer
+#     filter_backends = (SearchFilter,)
+#     search_fields = ("name",)
+#     lookup_field = "slug"
 
 
-# Create your views here.
-class CategoryViewSet(ListCreateDestroyViewSet):
-    queryset = Category.objects.all()
-    serializer_class = CategorySerializer
-    filter_backends = (SearchFilter,)
-    search_fields = ("name",)
-    lookup_field = "slug"
-
-
-class SignUpView(CreateAPIView):
+class SignUpView(generics.CreateAPIView):
     serializer_class = SignupSerializer
     permission_classes = (AllowAny,)
 
@@ -49,7 +44,7 @@ class SignUpView(CreateAPIView):
         return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class GetTokenView(CreateAPIView):
+class GetTokenView(generics.CreateAPIView):
     serializer_class = TokenSerializer
     permission_classes = (AllowAny,)
 
@@ -74,8 +69,9 @@ class UsersViewSet(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     filter_backends = [SearchFilter]
+    http_method_names = ['get', 'post', 'patch', 'delete']
     search_fields = ('username',)
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAdmin]
     lookup_field = 'username'
 
     @action(
@@ -91,5 +87,11 @@ class UsersViewSet(ModelViewSet):
         if request.method == 'PATCH':
             serializer = UserSerializer(user, data=request.data, partial=True)
             serializer.is_valid(raise_exception=True)
-            serializer.save()
+            serializer.save(role=self.request.user.role)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @action(detail=False, methods=['get'])
+    def get_users(self, request):
+        users = User.objects.all()
+        serialaizer = UserSerializer(users)
+        return Response(serialaizer.data, status=status.HTTP_200_OK)

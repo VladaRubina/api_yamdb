@@ -1,11 +1,9 @@
-import re
-
-from django.forms import ValidationError
+from django.core.exceptions import ValidationError
 
 
 def validate_username(value):
-    pattern = r'^[\w.@+-]+\Z'
-    if not re.match(pattern, value):
-        raise ValidationError('Недопустимые символы в никнейме')
     if 'me' == value:
-        raise ValidationError('Недопустимое имя')
+        raise ValidationError(
+            ('Имя пользователя не может быть <me>.'),
+            params={'value': value},
+        )
