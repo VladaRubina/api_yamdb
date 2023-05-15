@@ -10,7 +10,7 @@ from rest_framework.permissions import AllowAny, IsAdminUser, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
-from reviews.models import Category, User
+from reviews.models import Category, User, Title
 
 from api_yamdb.settings import ADMIN_EMAIL
 
@@ -19,7 +19,10 @@ from .serializers import (
     SignupSerializer,
     TokenSerializer,
     UserSerializer,
+    CommentsSerializer,
+    ReviewSerializer,
 )
+from .permissions import IsAuthorOrReadOnly
 
 # from rest_framework_simplejwt.tokens import AccessToken
 
@@ -93,3 +96,45 @@ class UsersViewSet(ModelViewSet):
             serializer.is_valid(raise_exception=True)
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthorOrReadOnly]
+
+    def get_title(self):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        return title
+
+    def get_queryset(self):
+        title = self.get_title()   
+        return title.reviews.all()
+
+    def perform_create(self, serializer):
+        title = self.get_title()
+        serializer.save(author=self.request.user, title=title)
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentsSerializer
+    permission_classes = [IsAuthorOrReadOnly]
+
+    def get_title(self):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        return title
+    
+    def get_queryset(self):
+        title = self.get_title()
+        try:
+            review = title.reviews.get(id=self.kwargs.get('review_id'))
+        except TypeError:
+            TypeError('Отзыв отсутствует')
+        queryset = review.comments.all()
+        return queryset
+
+    def perform_create(self, serializer):
+        title = self.get_title()
+        try:
+            review = title.reviews.get(id=self.kwargs.get('review_id'))
+        except TypeError:
+            TypeError('Отзыв отсутствует')
+        serializer.save(author=self.request.user, review=review)
