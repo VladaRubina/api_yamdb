@@ -90,10 +90,3 @@ class Category(models.Model):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
         ordering = ['name']
-
-
-class AnonymousUser:
-    def __init__(self):
-        @property
-        def is_admin(self):
-            return False
