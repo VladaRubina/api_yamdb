@@ -2,20 +2,18 @@ from rest_framework import permissions
 
 
 class IsAdmin(permissions.BasePermission):
+    """Доступ только для администраторов и суперюзеров (модели регистрации и управления юзерами)."""
+
     def has_permission(self, request, view):
-        return request.user.is_admin or request.user.is_staff
-
-    def has_object_permission(self, request, view, obj):
-        return request.user.is_admin or request.user.is_staff
-
-
-class IsUser(permissions.BasePermission):
-    def has_object_permission(self, request, view, obj):
-        return request.user.is_user
+        return (
+            request.user.is_authenticated
+            and request.user.is_admin
+            or request.user.is_staff
+        )
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
-    """Docstring."""
+    """Доступ на изменение только для администраторов (модели жанров, категорий и тайтлов)."""
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
@@ -23,12 +21,16 @@ class IsAdminOrReadOnly(permissions.BasePermission):
         return self.request.user.is_admin or self.request.user.is_staff
 
 
-class IsAuthorModeratorOrReadOnly(permissions.BasePermission):
-    """Доступ на изменение только авторам."""
+class IsAuthorStaffOrReadOnly(permissions.BasePermission):
+    """Доступ на изменение только для авторов и персонала сайта (модели коментов и отзывов)."""
 
     message = 'Изменения доступны только авторам или модераторам!'
 
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        return obj.author == request.user or request.user.is_moderator
+        return (
+            obj.author == request.user
+            or request.user.is_moderator
+            or request.user.is_admin
+        )
