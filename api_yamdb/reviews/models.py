@@ -78,13 +78,6 @@ class User(AbstractUser):
         return self.username
 
 
-class AnonymousUser:
-    def __init__(self):
-        @property
-        def is_admin(self):
-            return False
-
-
 class Category(models.Model):
     name = models.CharField(
         verbose_name='Название',
@@ -103,6 +96,7 @@ class Category(models.Model):
         verbose_name = 'Категория'
         verbose_name_plural = 'Категории'
         ordering = ['name']
+
 
 
 class Genre(models.Model):
@@ -182,3 +176,4 @@ class GenreTitle(models.Model):
     class Meta:
         verbose_name = 'Произведение и жанр'
         verbose_name_plural = 'Произведения и жанры'
+
