@@ -7,4 +7,6 @@ class ListCreateDestroyViewSet(
     mixins.DestroyModelMixin,
     viewsets.GenericViewSet,
 ):
+    """Кастомная вью для методов."""
+
     pass

@@ -3,6 +3,8 @@ from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class CategorySerializer(serializers.ModelSerializer):
+    """Сериалайзер категорий."""
+
     class Meta:
         model = Category
         exclude = ('id',)
@@ -11,6 +13,8 @@ class CategorySerializer(serializers.ModelSerializer):
 
 
 class SignupSerializer(serializers.ModelSerializer):
+    """Сериалайзер регистрации."""
+
     class Meta:
         model = User
         fields = ('email', 'username')
@@ -28,6 +32,8 @@ class SignupSerializer(serializers.ModelSerializer):
 
 
 class TokenSerializer(serializers.ModelSerializer):
+    """Сериалайзер получения токена."""
+
     username = serializers.CharField(required=True)
     confirmation_code = serializers.CharField(required=True)
 
@@ -37,12 +43,11 @@ class TokenSerializer(serializers.ModelSerializer):
 
 
 class UserSerializer(serializers.ModelSerializer):
-    """Docstring."""
+    """Сериалайзер управления юзерами."""
 
     class Meta:
         model = User
         fields = (
-            # 'id',
             'username',
             'email',
             'first_name',
@@ -54,6 +59,8 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class GenreSerializer(serializers.ModelSerializer):
+    """Сериалайзер жанров."""
+
     class Meta:
         model = Genre
         exclude = ('id',)
@@ -62,6 +69,8 @@ class GenreSerializer(serializers.ModelSerializer):
 
 
 class TitleSerializer(serializers.ModelSerializer):
+    """Сериалайзер тайтлов."""
+
     genre = serializers.SlugRelatedField(
         slug_field='slug', many=True, queryset=Genre.objects.all()
     )
@@ -75,6 +84,8 @@ class TitleSerializer(serializers.ModelSerializer):
 
 
 class ReadOnlyTitleSerializer(serializers.ModelSerializer):
+    """Сериалайзер тайтлов для чтения."""
+
     rating = serializers.IntegerField(
         source='reviews__score__avg', read_only=True
     )
@@ -95,6 +106,8 @@ class ReadOnlyTitleSerializer(serializers.ModelSerializer):
 
 
 class ReviewSerializer(serializers.ModelSerializer):
+    """Сериалайзер отзывов."""
+
     author = serializers.SlugRelatedField(
         read_only=True,
         slug_field='username',
@@ -117,6 +130,8 @@ class ReviewSerializer(serializers.ModelSerializer):
 
 
 class CommentsSerializer(serializers.ModelSerializer):
+    """Сериалайзер комментариев."""
+
     author = serializers.SlugRelatedField(
         read_only=True, slug_field='username'
     )
