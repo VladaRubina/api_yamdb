@@ -15,10 +15,11 @@ from reviews.models import Category, Genre, Title, User
 
 from .filters import TitlesFilter
 from .mixins import ListCreateDestroyViewSet
-from .permissions import IsAdmin, IsAdminUser
+from .permissions import IsAdmin, IsAuthorModeratorOrReadOnly, IsAuthorModeratorAdminOrReadOnly,  IsAdminOrReadOnly
 from .serializers import (CategorySerializer, GenreSerializer,
-                          ReadOnlyTitleSerializer, SignupSerializer,
-                          TitleSerializer, TokenSerializer, UserSerializer)
+                          SignupSerializer, ReadOnlyTitleSerializer,
+                          TitleSerializer, TokenSerializer, UserSerializer,
+                          ReviewSerializer, CommentsSerializer)
 
 # class CategoryViewSet(generics.ListCreateDestroyAPIView):
 #     queryset = Category.objects.all()
@@ -30,7 +31,7 @@ from .serializers import (CategorySerializer, GenreSerializer,
 class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    permission_classes = (IsAdminUser)
+    #permission_classes = (IsAdminUser) #000000000000000000000000000000000000000000000000000000
     filter_backends = (filters.SearchFilter)
     search_fields = ("name",)
     lookup_field = "slug"
@@ -108,7 +109,7 @@ class UsersViewSet(ModelViewSet):
 class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    permission_classes = (IsAdminUser)
+    #permission_classes = (IsAdminUser) #000000000000000000000000000000000000000000000000000000000
     filter_backends = (filters.SearchFilter)
     search_fields = ("name",)
     lookup_field = "slug"
@@ -117,9 +118,9 @@ class GenreViewSet(ListCreateDestroyViewSet):
 class TitleViewSet(viewsets.ModelViewSet):
     queryset = Title.objects.all().annotate(
         Avg("reviews__score")
-    ).order_by("name")
+    ).order_by("name")    
     serializer_class = TitleSerializer
-    permission_classes = (IsAdminUser)
+    #permission_classes = (IsAdminOrReadOnly) #00000000000000000000000000000000000000000000000000000000000
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitlesFilter
 
@@ -127,3 +128,46 @@ class TitleViewSet(viewsets.ModelViewSet):
         if self.action in ("retrieve", "list"):
             return ReadOnlyTitleSerializer
         return TitleSerializer
+
+
+class ReviewViewSet(viewsets.ModelViewSet):
+    serializer_class = ReviewSerializer
+    permission_classes = [IsAuthorModeratorAdminOrReadOnly]
+
+    def get_title(self):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        return title
+
+    def get_queryset(self):
+        title = self.get_title()   
+        return title.reviews.all()
+
+    def perform_create(self, serializer):
+        title = self.get_title()
+        serializer.save(author=self.request.user, title=title)
+
+
+class CommentViewSet(viewsets.ModelViewSet):
+    serializer_class = CommentsSerializer
+    permission_classes = [IsAuthorModeratorAdminOrReadOnly]
+
+    def get_title(self):
+        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
+        return title
+    
+    def get_queryset(self):
+        title = self.get_title()
+        try:
+            review = title.reviews.get(id=self.kwargs.get('review_id'))
+        except TypeError:
+            TypeError('Отзыв отсутствует')
+        queryset = review.comments.all()
+        return queryset
+
+    def perform_create(self, serializer):
+        title = self.get_title()
+        try:
+            review = title.reviews.get(id=self.kwargs.get('review_id'))
+        except TypeError:
+            TypeError('Отзыв отсутствует')
+        serializer.save(author=self.request.user, review=review)

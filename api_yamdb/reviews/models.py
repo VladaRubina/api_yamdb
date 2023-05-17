@@ -2,7 +2,9 @@ from api.validators import validate_username
 from django.contrib.auth.models import AbstractUser
 from django.contrib.auth.validators import UnicodeUsernameValidator
 from django.db import models
+from django.core.validators import MaxValueValidator, MinValueValidator
 
+from .validators import validate_year
 
 username_validator = UnicodeUsernameValidator()
 
@@ -12,7 +14,7 @@ MODERATOR = 'moderator'
 
 CHOICES = [
     (USER, USER),
-    (ADMIN, ADMIN),
+    (ADMIN, ADMIN), 
     (MODERATOR, MODERATOR),
 ]
 
@@ -182,3 +184,56 @@ class GenreTitle(models.Model):
     class Meta:
         verbose_name = 'Произведение и жанр'
         verbose_name_plural = 'Произведения и жанры'
+
+
+class Review(models.Model):
+    title = models.ForeignKey(
+        Title,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='reviews'
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True
+    )
+    text = models.TextField()
+    score = models.IntegerField(
+        'Оценка',
+        default=0,
+        validators=[MinValueValidator(1),
+                    MaxValueValidator(10)],
+    )
+
+    class Meta:
+        ordering = ['-pub_date']
+        verbose_name = 'Ревью'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['author', 'title'], name="unique_review")
+        ]
+
+
+class Comment(models.Model):
+    review = models.ForeignKey(
+        Review,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    text = models.TextField()
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    pub_date = models.DateTimeField(
+        'Дата публикации',
+        auto_now_add=True
+    )
+
+    def __str__(self):
+        return self.author
