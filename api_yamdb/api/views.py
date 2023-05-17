@@ -30,6 +30,8 @@ from .serializers import (
 
 
 class CategoryViewSet(ListCreateDestroyViewSet):
+    """Управление категориями."""
+
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -39,6 +41,8 @@ class CategoryViewSet(ListCreateDestroyViewSet):
 
 
 class SignUpView(generics.CreateAPIView):
+    """Управление регистрацией."""
+
     serializer_class = SignupSerializer
     permission_classes = (AllowAny,)
 
@@ -55,6 +59,8 @@ class SignUpView(generics.CreateAPIView):
 
 
 class GetTokenView(generics.CreateAPIView):
+    """Получение токена."""
+
     serializer_class = TokenSerializer
     permission_classes = (AllowAny,)
 
@@ -74,7 +80,7 @@ class GetTokenView(generics.CreateAPIView):
 
 
 class UsersViewSet(ModelViewSet):
-    """Docstring."""
+    """Управление пользователями."""
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -108,6 +114,8 @@ class UsersViewSet(ModelViewSet):
 
 
 class GenreViewSet(ListCreateDestroyViewSet):
+    """Управление жанрами."""
+
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
     permission_classes = [IsAdminOrReadOnly]
@@ -117,6 +125,8 @@ class GenreViewSet(ListCreateDestroyViewSet):
 
 
 class TitleViewSet(viewsets.ModelViewSet):
+    """Управление произведениями."""
+
     queryset = (
         Title.objects.all().annotate(Avg("reviews__score")).order_by("name")
     )
@@ -132,6 +142,8 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 
 class ReviewViewSet(viewsets.ModelViewSet):
+    """Управление отзывами."""
+
     serializer_class = ReviewSerializer
     permission_classes = [IsAuthorStaffOrReadOnly]
 
@@ -149,6 +161,8 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 
 class CommentViewSet(viewsets.ModelViewSet):
+    """Управление комментариями."""
+
     serializer_class = CommentsSerializer
     permission_classes = [IsAuthorStaffOrReadOnly]
 

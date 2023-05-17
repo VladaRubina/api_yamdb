@@ -1,9 +1,8 @@
 from rest_framework import serializers
-from reviews.models import Category, Genre, Title, User, Review, Comment
+from reviews.models import Category, Comment, Genre, Review, Title, User
 
 
 class CategorySerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Category
         exclude = ('id',)
@@ -51,20 +50,15 @@ class UserSerializer(serializers.ModelSerializer):
             'bio',
             'role',
         )
-        extra_kwargs = {
-            'url': {'lookup_field': 'slug'}
-        }
+        extra_kwargs = {'url': {'lookup_field': 'slug'}}
 
 
 class GenreSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = Genre
         exclude = ('id',)
         lookup_field = 'slug'
-        extra_kwargs = {
-            'url': {'lookup_field': 'slug'}
-        }
+        extra_kwargs = {'url': {'lookup_field': 'slug'}}
 
 
 class TitleSerializer(serializers.ModelSerializer):
@@ -90,13 +84,20 @@ class ReadOnlyTitleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Title
         fields = (
-            'id', 'name', 'year', 'rating', 'description', 'genre', 'category'
+            'id',
+            'name',
+            'year',
+            'rating',
+            'description',
+            'genre',
+            'category',
         )
 
 
 class ReviewSerializer(serializers.ModelSerializer):
     author = serializers.SlugRelatedField(
-        read_only=True, slug_field='username',
+        read_only=True,
+        slug_field='username',
         default=serializers.CurrentUserDefault(),
     )
 
@@ -104,7 +105,7 @@ class ReviewSerializer(serializers.ModelSerializer):
         fields = '__all__'
         model = Review
         read_only_fields = ('title',)
-        
+
     def validate(self, data):
         if self.context['request'].method != 'POST':
             return data
