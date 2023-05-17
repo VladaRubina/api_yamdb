@@ -20,6 +20,8 @@ CHOICES = [
 
 
 class User(AbstractUser):
+    """Модель управления пользователями."""
+
     username = models.CharField(
         'Никнейм',
         max_length=150,
@@ -81,6 +83,8 @@ class User(AbstractUser):
 
 
 class Category(models.Model):
+    """Модель категорий."""
+
     name = models.CharField(verbose_name='Название', max_length=256)
     slug = models.SlugField(
         verbose_name='Идентификатор', max_length=50, unique=True
@@ -96,6 +100,8 @@ class Category(models.Model):
 
 
 class Genre(models.Model):
+    """Модель жанров."""
+
     name = models.CharField(verbose_name='Название', max_length=256)
     slug = models.SlugField(
         verbose_name='Идентификатор', max_length=50, unique=True
@@ -111,6 +117,8 @@ class Genre(models.Model):
 
 
 class Title(models.Model):
+    """Модель тайтлов."""
+
     name = models.CharField(verbose_name='Название', max_length=200)
     year = models.IntegerField(
         verbose_name='Дата выхода', validators=[validate_year]
@@ -142,6 +150,9 @@ class Title(models.Model):
 
 
 class GenreTitle(models.Model):
+    """Модель промежуточной таблицы
+    жанры-произведения."""
+
     title = models.ForeignKey(
         Title, verbose_name='Произведение', on_delete=models.CASCADE
     )
@@ -158,6 +169,8 @@ class GenreTitle(models.Model):
 
 
 class Review(models.Model):
+    """Модель отзывов."""
+
     title = models.ForeignKey(
         Title, on_delete=models.CASCADE, related_name='reviews'
     )
@@ -183,6 +196,8 @@ class Review(models.Model):
 
 
 class Comment(models.Model):
+    """Модель комментариев."""
+
     review = models.ForeignKey(
         Review, on_delete=models.CASCADE, related_name='comments'
     )
