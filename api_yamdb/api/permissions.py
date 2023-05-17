@@ -2,7 +2,8 @@ from rest_framework import permissions
 
 
 class IsAdmin(permissions.BasePermission):
-    """Доступ только для администраторов и суперюзеров (модели регистрации и управления юзерами)."""
+    """Доступ только для администраторов и суперюзеров
+    (модели регистрации и управления юзерами)."""
 
     def has_permission(self, request, view):
         return (
@@ -13,7 +14,8 @@ class IsAdmin(permissions.BasePermission):
 
 
 class IsAdminOrReadOnly(permissions.BasePermission):
-    """Доступ на изменение только для администраторов (модели жанров, категорий и тайтлов)."""
+    """Доступ на изменение только для администраторов
+    (модели жанров, категорий и тайтлов)."""
 
     def has_permission(self, request, view):
         if request.method in permissions.SAFE_METHODS:
@@ -35,7 +37,8 @@ class IsAdminOrReadOnly(permissions.BasePermission):
 
 
 class IsAuthorStaffOrReadOnly(permissions.BasePermission):
-    """Доступ на изменение только для авторов и персонала сайта (модели коментов и отзывов)."""
+    """Доступ на изменение только для авторов и персонала сайта
+    (модели коментов и отзывов)."""
 
     message = 'Изменения доступны только авторам или модераторам!'
 

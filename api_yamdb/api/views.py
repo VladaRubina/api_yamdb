@@ -1,4 +1,3 @@
-from api_yamdb.settings import ADMIN_EMAIL
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.db.models import Avg
@@ -6,35 +5,37 @@ from django.shortcuts import get_object_or_404
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.filters import SearchFilter
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
 from reviews.models import Category, Genre, Title, User
 
+from api_yamdb.settings import ADMIN_EMAIL
+
 from .filters import TitlesFilter
 from .mixins import ListCreateDestroyViewSet
-from .permissions import IsAdmin, IsAuthorModeratorOrReadOnly, IsAuthorModeratorAdminOrReadOnly,  IsAdminOrReadOnly
-from .serializers import (CategorySerializer, GenreSerializer,
-                          SignupSerializer, ReadOnlyTitleSerializer,
-                          TitleSerializer, TokenSerializer, UserSerializer,
-                          ReviewSerializer, CommentsSerializer)
+from .permissions import IsAdmin, IsAdminOrReadOnly, IsAuthorStaffOrReadOnly
+from .serializers import (
+    CategorySerializer,
+    CommentsSerializer,
+    GenreSerializer,
+    ReadOnlyTitleSerializer,
+    ReviewSerializer,
+    SignupSerializer,
+    TitleSerializer,
+    TokenSerializer,
+    UserSerializer,
+)
 
-# class CategoryViewSet(generics.ListCreateDestroyAPIView):
-#     queryset = Category.objects.all()
-#     serializer_class = CategorySerializer
-#     filter_backends = (SearchFilter,)
-#     search_fields = ("name",)
-#     lookup_field = "slug"
 
 class CategoryViewSet(ListCreateDestroyViewSet):
     queryset = Category.objects.all()
     serializer_class = CategorySerializer
-    #permission_classes = (IsAdminUser) #000000000000000000000000000000000000000000000000000000
-    filter_backends = (filters.SearchFilter)
-    search_fields = ("name",)
-    lookup_field = "slug"
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [filters.SearchFilter]
+    search_fields = ('name',)
+    lookup_field = 'slug'
 
 
 class SignUpView(generics.CreateAPIView):
@@ -77,7 +78,7 @@ class UsersViewSet(ModelViewSet):
 
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    filter_backends = [SearchFilter]
+    filter_backends = [filters.SearchFilter]
     http_method_names = ['get', 'post', 'patch', 'delete']
     search_fields = ('username',)
     permission_classes = [IsAdmin]
@@ -109,18 +110,18 @@ class UsersViewSet(ModelViewSet):
 class GenreViewSet(ListCreateDestroyViewSet):
     queryset = Genre.objects.all()
     serializer_class = GenreSerializer
-    #permission_classes = (IsAdminUser) #000000000000000000000000000000000000000000000000000000000
-    filter_backends = (filters.SearchFilter)
+    permission_classes = [IsAdminOrReadOnly]
+    filter_backends = [filters.SearchFilter]
     search_fields = ("name",)
     lookup_field = "slug"
 
 
 class TitleViewSet(viewsets.ModelViewSet):
-    queryset = Title.objects.all().annotate(
-        Avg("reviews__score")
-    ).order_by("name")    
+    queryset = (
+        Title.objects.all().annotate(Avg("reviews__score")).order_by("name")
+    )
     serializer_class = TitleSerializer
-    #permission_classes = (IsAdminOrReadOnly) #00000000000000000000000000000000000000000000000000000000000
+    permission_classes = [IsAdminOrReadOnly]
     filter_backends = [DjangoFilterBackend]
     filterset_class = TitlesFilter
 
@@ -132,14 +133,14 @@ class TitleViewSet(viewsets.ModelViewSet):
 
 class ReviewViewSet(viewsets.ModelViewSet):
     serializer_class = ReviewSerializer
-    permission_classes = [IsAuthorModeratorAdminOrReadOnly]
+    permission_classes = [IsAuthorStaffOrReadOnly]
 
     def get_title(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         return title
 
     def get_queryset(self):
-        title = self.get_title()   
+        title = self.get_title()
         return title.reviews.all()
 
     def perform_create(self, serializer):
@@ -149,12 +150,12 @@ class ReviewViewSet(viewsets.ModelViewSet):
 
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
-    permission_classes = [IsAuthorModeratorAdminOrReadOnly]
+    permission_classes = [IsAuthorStaffOrReadOnly]
 
     def get_title(self):
         title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
         return title
-    
+
     def get_queryset(self):
         title = self.get_title()
         try:
