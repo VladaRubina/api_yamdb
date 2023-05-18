@@ -1,25 +1,30 @@
 import csv
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
-from reviews.models import Category
+from reviews.models import Category, Comment, Genre, Review, Title, User
+
+models_file = {
+    Category: 'category.csv',
+    User: 'users.csv',
+    Genre: 'genre.csv',
+    Title: 'titles.csv',
+    Title.genre.through: 'genre_title.csv',
+    Review: 'review.csv',
+    Comment: 'comments.csv',
+}
 
 
 class Command(BaseCommand):
     help = 'Загрузка данных.'
 
-    # def add_arguments(self, parser: CommandParser) -> None:
-    #     parser.add_argument('data', nargs='+', type=str)
-
     def handle(self, *args, **options):
-        csv_file1 = 'static/data/category.csv'
-        # for file_path in csv_files:
-        #     if
-        with open(csv_file1, 'r') as file:
-            reader = csv.DictReader(file)
-            for row in reader:
-                # print(count(row))
-                # key = (1, 2, 3,..)
-                # len(key)
-                Category.objects.create(
-                    id=row['id'], name=row['name'], slug=row['slug']
-                )
+        for model, file in models_file.items():
+            with open(
+                f'{settings.BASE_DIR}/static/data/{file}',
+                'r',
+                encoding='utf-8',
+            ) as csvfile:
+                reader = csv.DictReader(csvfile)
+                for row in reader:
+                    model.objects.get_or_create(**row)
