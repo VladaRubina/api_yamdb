@@ -80,7 +80,15 @@ class TitleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Title
-        fields = '__all__'
+        fields = (
+            'id',
+            'name',
+            'year',
+            'rating',
+            'description',
+            'genre',
+            'category',
+        )
 
 
 class ReadOnlyTitleSerializer(serializers.ModelSerializer):
@@ -115,7 +123,14 @@ class ReviewSerializer(serializers.ModelSerializer):
     )
 
     class Meta:
-        fields = '__all__'
+        fields = (
+            'id',
+            'title',
+            'author',
+            'pub_date',
+            'text',
+            'score',
+        )
         model = Review
         read_only_fields = ('title',)
 

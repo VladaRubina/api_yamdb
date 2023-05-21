@@ -9,7 +9,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework_simplejwt.tokens import AccessToken
-from reviews.models import Category, Genre, Title, User
+from reviews.models import Category, Genre, Title, User, Review
 
 from api_yamdb.settings import ADMIN_EMAIL
 
@@ -106,12 +106,6 @@ class UsersViewSet(ModelViewSet):
             serializer.save(role=self.request.user.role)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
-    @action(detail=False, methods=['get'])
-    def get_users(self, request):
-        users = User.objects.all()
-        serialaizer = UserSerializer(users)
-        return Response(serialaizer.data, status=status.HTTP_200_OK)
-
 
 class GenreViewSet(ListCreateDestroyViewSet):
     """Управление жанрами."""
@@ -166,23 +160,15 @@ class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentsSerializer
     permission_classes = [IsAuthorStaffOrReadOnly]
 
-    def get_title(self):
-        title = get_object_or_404(Title, id=self.kwargs.get('title_id'))
-        return title
+    def get_review(self):
+        rewiew = get_object_or_404(Review, id=self.kwargs.get('review_id'),
+                                   title__id=self.kwargs.get('title_id'))
+        return rewiew
 
     def get_queryset(self):
-        title = self.get_title()
-        try:
-            review = title.reviews.get(id=self.kwargs.get('review_id'))
-        except TypeError:
-            TypeError('Отзыв отсутствует')
-        queryset = review.comments.all()
+        queryset = self.get_review().comments.all()
         return queryset
 
     def perform_create(self, serializer):
-        title = self.get_title()
-        try:
-            review = title.reviews.get(id=self.kwargs.get('review_id'))
-        except TypeError:
-            TypeError('Отзыв отсутствует')
+        review = self.get_review()
         serializer.save(author=self.request.user, review=review)
